@@ -1,3 +1,6 @@
-flask
-requests
+Flask
 gunicorn
+python-telegram-bot==20.0
+google-generativeai
+requests
+beautifulsoup4
