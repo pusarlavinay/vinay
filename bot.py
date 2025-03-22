@@ -1,45 +1,26 @@
 import os
-import telegram
 import logging
-import requests
-from flask import Flask, request, jsonify
+import telegram
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
-from telegram.constants import ParseMode
+from flask import Flask, request, jsonify
 
 # ------------------ Configuration ------------------
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "7349721276:AAG-ZTUlomzo6XQq8iG51smJIttA0qdmy1U")
-RENDER_URL = os.getenv("RENDER_URL", "https://vinay-zkni.onrender.com")
+TELEGRAM_TOKEN = os.getenv("7349721276:AAG-ZTUlomzo6XQq8iG51smJIttA0qdmy1U")  # Get token from environment variable
+WEBHOOK_URL = os.getenv("https://vinay-zkni.onrender.com")  # Your Render webhook URL
 
-# Initialize Flask app
-app = Flask(__name__)
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-# ------------------ Telegram Bot ------------------
+# Initialize Telegram Bot
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-async def start(update, context):
-    await update.message.reply_text("Hello! Send me a coding problem, and I'll find the best code snippet!")
+# ------------------ Flask Backend ------------------
+app = Flask(__name__)
 
-async def handle_message(update, context):
-    query = update.message.text
-    await update.message.reply_text("Looking for the best code snippet...⏳")
+# Logging setup
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    try:
-        response = requests.post(f"{RENDER_URL}/find_best_code", json={'query': query})
-        if response.status_code == 200:
-            best_code = response.json().get('best_code', 'No code found.')
-            await update.message.reply_text(f"Here is the best code I found:\n\n<pre>{best_code}</pre>", parse_mode=ParseMode.HTML)
-        else:
-            await update.message.reply_text("Error fetching the code snippet.")
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
+@app.route("/")
+def home():
+    return "Bot is running!"
 
-application.add_handler(CommandHandler("start", start))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-# ------------------ Webhook Route ------------------
 @app.route('/telegram_webhook', methods=['POST'])
 def telegram_webhook():
     """Handles incoming Telegram updates."""
@@ -49,22 +30,23 @@ def telegram_webhook():
     if "message" in data:
         update = telegram.Update.de_json(data, application.bot)
         application.process_update(update)
-    
-    return jsonify({"status": "ok"}), 200
+        logging.info("Update processed successfully!")
 
-# ------------------ Flask API Endpoints ------------------
-@app.route('/')
-def home():
-    return "Bot is running!"
+    return jsonify({"status": "ok"}), 200  # Send a valid response to Telegram
 
-@app.route('/find_best_code', methods=['POST'])
-def find_best_code():
-    data = request.get_json()
-    query = data.get('query', '')
+# ------------------ Telegram Bot Commands ------------------
+async def start(update, context):
+    await update.message.reply_text("Hello! I am your bot. Send me a message!")
 
-    best_code = f"Here is a sample response for: {query}"
-    return jsonify({'best_code': best_code})
+async def handle_message(update, context):
+    user_text = update.message.text
+    await update.message.reply_text(f"You said: {user_text}")
 
-# ------------------ Run Flask in Thread ------------------
+# ------------------ Register Handlers ------------------
+application.add_handler(CommandHandler("start", start))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+# ------------------ Start Flask Server ------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    PORT = int(os.environ.get("PORT", 5000))  # Use PORT assigned by Render
+    app.run(host="0.0.0.0", port=PORT)
