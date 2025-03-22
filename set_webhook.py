@@ -1,11 +1,8 @@
 import requests
+import os
 
-TOKEN = "7349721276:AAG-ZTUlomzo6XQq8iG51smJIttA0qdmy1U"  # Replace this with your real bot token
+TOKEN = os.getenv("TELEGRAM_TOKEN")  # Get from environment variables
+WEBHOOK_URL = os.getenv("RENDER_URL") + "/my_secret_path"  # Append webhook path
 
-WEBHOOK_URL = "https://geniecode.onrender.com/my_secret_path"  # Your Render URL + webhook path
-
-response = requests.get(
-    f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}"
-)
-
+response = requests.get(f"https://api.telegram.org/bot{TOKEN}/setWebhook?url={WEBHOOK_URL}")
 print(response.json())
