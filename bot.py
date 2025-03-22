@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from flask import Flask, request, jsonify
 
 # ------------------ Configuration ------------------
-TELEGRAM_TOKEN = os.getenv("7349721276:AAG-ZTUlomzo6XQq8iG51smJIttA0qdmy1U")  # Get token from environment variable
+TELEGRAM_TOKEN = os.getenv("7349721276:AAE6ZPaQ5gr2pfTzwD4fHdvE3oEayypxtuk")  # Get token from environment variable
 WEBHOOK_URL = os.getenv("https://vinay-zkni.onrender.com")  # Your Render webhook URL
 
 # Initialize Telegram Bot
